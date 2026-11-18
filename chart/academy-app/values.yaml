@@ -1,0 +1,26 @@
+image:
+  # The CI sets it to ghcr.io/<owner>/<repository> when it packages the chart.
+  repository: ghcr.io/cycloidio/academy-app
+  # Empty: the chart's appVersion, the commit the CI built the image from.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+# What the page shows.
+message: Hello from Cycloid Academy
+environment: dev
+
+ingress:
+  # The hostname the app answers on, for example academy-app-dev.203.0.113.10.sslip.io.
+  # Required: K3s's Traefik routes on it.
+  host: ""
+  className: traefik
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi

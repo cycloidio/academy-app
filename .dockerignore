@@ -1,0 +1,5 @@
+.git
+.github
+chart
+node_modules
+*.md

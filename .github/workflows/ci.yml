@@ -1,0 +1,92 @@
+# Test, build and publish academy-app on every push, to any branch.
+#
+# Needs no repository secret or variable: the image and chart names come from the repository
+# name, the tag from the commit SHA, and the login uses the token GitHub gives every run.
+# Uses no action from outside GitHub: GitHub's own checkout, then docker and helm, both
+# installed on GitHub's Ubuntu runners.
+#
+# Publishes, for commit <sha>:
+#   image  ghcr.io/<owner>/<repository>:<sha>
+#   chart  oci://ghcr.io/<owner>/charts/academy-app, version 0.1.0-g<sha>, appVersion <sha>
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Unit tests
+        run: docker build --target test .
+
+  publish:
+    # Pushes only: a pull request from a fork gets no token that may publish.
+    if: github.event_name == 'push'
+    needs: test
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Names
+        id: names
+        run: |
+          repo="${GITHUB_REPOSITORY,,}"
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          {
+            echo "image=ghcr.io/${repo}"
+            echo "charts=oci://ghcr.io/${owner}/charts"
+            echo "chart_version=0.1.0-g${GITHUB_SHA}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GitHub Packages
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "$TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          echo "$TOKEN" | helm registry login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+
+      - name: Build and push the image
+        env:
+          IMAGE: ${{ steps.names.outputs.image }}
+        run: |
+          docker build --target runtime --build-arg "COMMIT=${GITHUB_SHA}" \
+            --label "org.opencontainers.image.source=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" \
+            --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
+            -t "${IMAGE}:${GITHUB_SHA}" .
+          docker push "${IMAGE}:${GITHUB_SHA}"
+
+      - name: Package and push the chart
+        env:
+          IMAGE: ${{ steps.names.outputs.image }}
+          CHARTS: ${{ steps.names.outputs.charts }}
+          CHART_VERSION: ${{ steps.names.outputs.chart_version }}
+        run: |
+          sed -i "s|^  repository: .*|  repository: ${IMAGE}|" chart/academy-app/values.yaml
+          helm lint chart/academy-app --set ingress.host=lint.example
+          helm package chart/academy-app --version "${CHART_VERSION}" --app-version "${GITHUB_SHA}"
+          helm push "academy-app-${CHART_VERSION}.tgz" "${CHARTS}"
+
+      - name: Summary
+        env:
+          IMAGE: ${{ steps.names.outputs.image }}
+          CHARTS: ${{ steps.names.outputs.charts }}
+          CHART_VERSION: ${{ steps.names.outputs.chart_version }}
+        run: |
+          {
+            echo "Image: \`${IMAGE}:${GITHUB_SHA}\`"
+            echo ""
+            echo "Chart: \`${CHARTS}/academy-app:${CHART_VERSION}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
