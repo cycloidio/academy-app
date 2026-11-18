@@ -1,0 +1,8 @@
+apiVersion: v2
+name: academy-app
+description: Sample web application of the Cycloid Academy missions
+type: application
+# The CI packages the chart with version 0.1.0-g<commit> and appVersion <commit>, so one chart
+# version matches one image.
+version: 0.1.0
+appVersion: "unknown"

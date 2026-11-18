@@ -1,0 +1,14 @@
+{
+  "name": "academy-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sample web application of the Cycloid Academy missions",
+  "type": "module",
+  "engines": {
+    "node": ">=26"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test"
+  }
+}
