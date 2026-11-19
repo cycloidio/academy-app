@@ -1,0 +1,10 @@
+apiVersion: v2
+# The service's name. The CI sets it to the repository's name when it packages the chart, so a
+# copy of this template renamed for a new service publishes its chart under that name.
+name: academy-app
+description: A web service deployed with Cycloid
+type: application
+# The CI packages the chart with version 0.1.0-g<commit> and appVersion <commit>, so one chart
+# version matches one image.
+version: 0.1.0
+appVersion: "unknown"

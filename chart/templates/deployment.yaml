@@ -3,16 +3,16 @@ kind: Deployment
 metadata:
   name: {{ .Release.Name }}
   labels:
-    {{- include "academy-app.labels" . | nindent 4 }}
+    {{- include "app.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "academy-app.selector" . | nindent 6 }}
+      {{- include "app.selector" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "academy-app.labels" . | nindent 8 }}
+        {{- include "app.labels" . | nindent 8 }}
     spec:
       automountServiceAccountToken: false
       securityContext:
@@ -28,6 +28,8 @@ spec:
           env:
             - name: MESSAGE
               value: {{ .Values.message | quote }}
+            - name: SERVICE_NAME
+              value: {{ .Chart.Name | quote }}
             - name: ENVIRONMENT
               value: {{ .Values.environment | quote }}
           ports:

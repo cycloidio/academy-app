@@ -7,7 +7,7 @@ let server
 let base
 
 before(async () => {
-  server = createServer(handler({ message: 'Hi <there>', commit: 'abc1234', environment: 'dev' }))
+  server = createServer(handler({ service: 'orders', message: 'Hi <there>', commit: 'abc1234', environment: 'dev' }))
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
   base = `http://127.0.0.1:${server.address().port}`
 })
@@ -20,6 +20,8 @@ test('the page shows the message, the commit and the environment', async () => {
   const body = await res.text()
   assert.match(body, /<code id="commit">abc1234<\/code>/)
   assert.match(body, /<code id="environment">dev<\/code>/)
+  assert.match(body, /<code id="service">orders<\/code>/)
+  assert.match(body, /<title>orders<\/title>/)
   assert.match(body, /Hi &lt;there&gt;/)
 })
 
@@ -39,6 +41,7 @@ test('only GET and HEAD are allowed', async () => {
 
 test('defaults apply when nothing is set', () => {
   assert.deepEqual(readConfig({}), {
+    service: 'academy-app',
     message: 'Hello from Cycloid Academy',
     commit: 'unknown',
     environment: 'unknown',

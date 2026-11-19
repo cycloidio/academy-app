@@ -3,11 +3,11 @@ kind: Ingress
 metadata:
   name: {{ .Release.Name }}
   labels:
-    {{- include "academy-app.labels" . | nindent 4 }}
+    {{- include "app.labels" . | nindent 4 }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   rules:
-    - host: {{ required "ingress.host is required (for example academy-app-dev.<vm-ip>.sslip.io)" .Values.ingress.host | quote }}
+    - host: {{ required "ingress.host is required (for example myservice-dev.<vm-ip>.sslip.io)" .Values.ingress.host | quote }}
       http:
         paths:
           - path: /
