@@ -3,10 +3,10 @@ kind: Service
 metadata:
   name: {{ .Release.Name }}
   labels:
-    {{- include "academy-app.labels" . | nindent 4 }}
+    {{- include "app.labels" . | nindent 4 }}
 spec:
   selector:
-    {{- include "academy-app.selector" . | nindent 4 }}
+    {{- include "app.selector" . | nindent 4 }}
   ports:
     - name: http
       port: 80

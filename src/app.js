@@ -9,19 +9,20 @@ const escapeHtml = (text) =>
 
 export function readConfig(env = process.env) {
   return {
+    service: env.SERVICE_NAME || 'academy-app',
     message: env.MESSAGE || 'Hello from Cycloid Academy',
     commit: env.COMMIT || 'unknown',
     environment: env.ENVIRONMENT || 'unknown',
   }
 }
 
-export function renderPage({ message, commit, environment }) {
+export function renderPage({ service = 'academy-app', message, commit, environment }) {
   return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>academy-app</title>
+<title>${escapeHtml(service)}</title>
 <style>
   body { font-family: system-ui, sans-serif; max-width: 40rem; margin: 4rem auto; padding: 0 1rem; color: #1a1a2e; }
   h1 { font-size: 1.75rem; }
@@ -33,6 +34,7 @@ export function renderPage({ message, commit, environment }) {
 <body>
 <h1>${escapeHtml(message)}</h1>
 <dl>
+  <dt>Service</dt><dd><code id="service">${escapeHtml(service)}</code></dd>
   <dt>Commit</dt><dd><code id="commit">${escapeHtml(commit)}</code></dd>
   <dt>Environment</dt><dd><code id="environment">${escapeHtml(environment)}</code></dd>
 </dl>

@@ -1,13 +1,13 @@
-# Test, build and publish academy-app on every push, to any branch.
+# Test, build and publish this service on every push, to any branch.
 #
-# Needs no repository secret or variable: the image and chart names come from the repository
-# name, the tag from the commit SHA, and the login uses the token GitHub gives every run.
+# Needs no repository secret or variable: the service's name is the repository's name (a copy of
+# this template renamed for a new service publishes under that name), the tag the commit SHA, and the login uses the token GitHub gives every run.
 # Uses no action from outside GitHub: GitHub's own checkout, then docker and helm, both
 # installed on GitHub's Ubuntu runners.
 #
 # Publishes, for commit <sha>:
 #   image  ghcr.io/<owner>/<repository>:<sha>
-#   chart  oci://ghcr.io/<owner>/charts/academy-app, version 0.1.0-g<sha>, appVersion <sha>
+#   chart  oci://ghcr.io/<owner>/charts/<repository>, version 0.1.0-g<sha>, appVersion <sha>
 name: ci
 
 on:
@@ -46,6 +46,7 @@ jobs:
           repo="${GITHUB_REPOSITORY,,}"
           owner="${GITHUB_REPOSITORY_OWNER,,}"
           {
+            echo "service=${repo#*/}"
             echo "image=ghcr.io/${repo}"
             echo "charts=oci://ghcr.io/${owner}/charts"
             echo "chart_version=0.1.0-g${GITHUB_SHA}"
@@ -70,17 +71,20 @@ jobs:
 
       - name: Package and push the chart
         env:
+          SERVICE: ${{ steps.names.outputs.service }}
           IMAGE: ${{ steps.names.outputs.image }}
           CHARTS: ${{ steps.names.outputs.charts }}
           CHART_VERSION: ${{ steps.names.outputs.chart_version }}
         run: |
-          sed -i "s|^  repository: .*|  repository: ${IMAGE}|" chart/academy-app/values.yaml
-          helm lint chart/academy-app --set ingress.host=lint.example
-          helm package chart/academy-app --version "${CHART_VERSION}" --app-version "${GITHUB_SHA}"
-          helm push "academy-app-${CHART_VERSION}.tgz" "${CHARTS}"
+          sed -i "s|^name: .*|name: ${SERVICE}|" chart/Chart.yaml
+          sed -i "s|^  repository: .*|  repository: ${IMAGE}|" chart/values.yaml
+          helm lint chart --set ingress.host=lint.example
+          helm package chart --version "${CHART_VERSION}" --app-version "${GITHUB_SHA}"
+          helm push "${SERVICE}-${CHART_VERSION}.tgz" "${CHARTS}"
 
       - name: Summary
         env:
+          SERVICE: ${{ steps.names.outputs.service }}
           IMAGE: ${{ steps.names.outputs.image }}
           CHARTS: ${{ steps.names.outputs.charts }}
           CHART_VERSION: ${{ steps.names.outputs.chart_version }}
@@ -88,5 +92,5 @@ jobs:
           {
             echo "Image: \`${IMAGE}:${GITHUB_SHA}\`"
             echo ""
-            echo "Chart: \`${CHARTS}/academy-app:${CHART_VERSION}\`"
+            echo "Chart: \`${CHARTS}/${SERVICE}:${CHART_VERSION}\`"
           } >> "$GITHUB_STEP_SUMMARY"

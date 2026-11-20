@@ -12,7 +12,7 @@ message: Hello from Cycloid Academy
 environment: dev
 
 ingress:
-  # The hostname the app answers on, for example academy-app-dev.203.0.113.10.sslip.io.
+  # The hostname the app answers on, for example myservice-dev.203.0.113.10.sslip.io.
   # Required: K3s's Traefik routes on it.
   host: ""
   className: traefik

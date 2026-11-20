@@ -10,7 +10,7 @@ and the environment it runs in, so you can see each change you push reach the ru
 | `src/` | The application: Node.js, no dependency |
 | `test/` | Its unit tests (`node:test`) |
 | `Dockerfile` | The image: official Node.js LTS image pinned by digest, runs as a non-root user |
-| `chart/academy-app/` | The Helm chart that deploys it on Kubernetes |
+| `chart/` | The Helm chart that deploys it on Kubernetes |
 | `.github/workflows/ci.yml` | The CI: tests, then publishes the image and the chart to GitHub Packages |
 
 ## What the CI does
@@ -19,8 +19,10 @@ On every push, to any branch:
 
 1. Runs the unit tests.
 2. Builds the image and publishes it as `ghcr.io/<owner>/<repository>:<commit>`.
-3. Packages the chart and publishes it as `oci://ghcr.io/<owner>/charts/academy-app`, version `0.1.0-g<commit>`. That
+3. Packages the chart and publishes it as `oci://ghcr.io/<owner>/charts/<repository>`, version `0.1.0-g<commit>`. That
    chart version deploys the image of the same commit.
+
+The service is named after the repository: a copy of this template renamed for a new service publishes its image and chart under the new name, with nothing to edit.
 
 It needs no secret or variable: it uses the token GitHub gives every run.
 
